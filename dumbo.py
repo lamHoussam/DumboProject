@@ -1,5 +1,39 @@
-from lark import Lark, Transformer, Tree
+from lark import Lark, Transformer
 import argparse
+
+
+class DumboTemplateEngine(Transformer):
+    def __init__(self, variables, grammar):
+        self.variables = variables
+        self.template_grammar = grammar
+        self.output = []
+
+    def text(self, tokens):
+        return tokens[0]
+
+    def placeholder(self, tokens):
+        placeholder_name = tokens[0]
+        return self.variables.get(placeholder_name, "")
+
+    def render(self, template):
+        parser = Lark(self.template_grammar, start='programme')
+        tree = parser.parse(template)
+        self.output = []
+        self.traverse_tree(tree)
+        return ''.join(self.output)
+    
+    def traverse_tree(self, node):
+        if isinstance(node, str):
+            self.output.append(node)
+        elif node.data == 'variable':
+            variable_name = node.children[0]
+            value = self.variables.get(variable_name, '')
+            print("Value : " + str(node))
+            self.output.append(str(value))
+        else:
+            for child in node.children:
+                self.traverse_tree(child)
+
 
 def main():
     arg_parser = argparse.ArgumentParser(description='Dumbo programming language')
@@ -18,12 +52,13 @@ def main():
     with open('grammar.lark', 'r') as f:
         grammar = f.read()
 
-    parser = Lark(grammar, start='programme')
-
     with open(template_file, 'r') as f:
         template_file_content = f.read()
 
-    output = parser.parse(template_file_content)
+    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info')}
+    dumbo_engine = DumboTemplateEngine(variables=variables, grammar=grammar)
+
+    output = dumbo_engine.render(template_file_content)
     with open("output.txt", 'w') as f:
         f.write(str(output))
 
