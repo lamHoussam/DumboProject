@@ -1,0 +1,34 @@
+%import common.CNAME
+%import common.WS
+%ignore WS
+
+start: programme
+
+programme: txt | txt programme
+            | dumbo_bloc | dumbo_bloc programme
+
+txt: /[^{}]+/
+
+dumbo_bloc: "{{" expressions_list "}}"
+
+expressions_list: expression ";" expressions_list
+                | expression ";"
+
+expression: "print" string_expression
+            | "for" variable "in" string_list "do" expressions_list "endfor"
+            | "for" variable "in" variable "do" expressions_list "endfor"
+            | variable ":=" string_expression
+            | variable ":=" string_list
+
+string_expression: string
+                    | variable
+                    | string_expression "." string_expression
+
+string_list: "(" string_list_interior ")"
+
+string_list_interior: string
+                    | string "," string_list_interior
+
+variable: CNAME
+
+string: /'[^']*'/

@@ -1,0 +1,4 @@
+{{
+    nom := 'Brouette';
+    prenom := 'Quentin';
+}}
