@@ -1,5 +1,6 @@
 %import common.CNAME
 %import common.WS
+%import common.NUMBER
 %ignore WS
 
 start: programme
@@ -19,7 +20,21 @@ expression: "print" string_expression
             | "for" variable "in" variable "do" expressions_list "endfor"
             | variable ":=" string_expression
             | variable ":=" string_list
+            | integer_expression
 
+
+add_op: "+"
+sub_op: "-"
+mul_op: "*"
+div_op: "//"
+
+arithmetic_operator: add_op | sub_op | mul_op | div_op
+
+integer_expression: integer
+                  | variable
+                  | integer_expression arithmetic_operator integer_expression
+
+string: /'[^']*'/
 string_expression: string
                     | variable
                     | string_expression "." string_expression
@@ -29,6 +44,6 @@ string_list: "(" string_list_interior ")"
 string_list_interior: string
                     | string "," string_list_interior
 
-variable: CNAME
 
-string: /'[^']*'/
+integer: NUMBER
+variable: CNAME

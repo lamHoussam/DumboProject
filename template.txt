@@ -1,13 +1,15 @@
 <html>
     <head>
-        <title>{{ print nom. ' '.prenom; }}</title>
+        <title>{{ print nom.' '.prenom; }}</title>
     </head>
     <body>
         <h1>
-            {{ print nom. ' '.prenom; }}
+            {{ integerValue+integ;
+                print ' and ';
+                integerValue*integ+integ; }}
         </h1>
         Cours: {{ for c in cours do 
-            print c. ', ';
+            print c.', ';
         endfor; }}
     </body>
 </html>
