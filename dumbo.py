@@ -23,6 +23,7 @@ class DumboTemplateEngine(Transformer):
         return ''.join(self.output)
     
     def evaluate_integer_expression(self, node):
+        print("Child: " + str(node))
         if len(node.children) == 1:
             child = node.children[0]
             if child.data == 'integer':
@@ -33,6 +34,10 @@ class DumboTemplateEngine(Transformer):
                 return self.variables.get(variable_name)
             else:
                 return self.evaluate_integer_expression(child)
+        elif len(node.children) == 2:
+            coeff = -1 if str(node.children[0]) == '-' else 1
+            return coeff * self.evaluate_integer_expression(node.children[1])
+            
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))

@@ -42,6 +42,7 @@ term: factor
 
 factor: integer
         | variable
+        | SUB_OP factor
         | "(" integer_expression ")"
 
 
@@ -67,6 +68,7 @@ FALSE: "false"
 AND: "and"
 OR : "or"
 NOT: "not"
+SUB_OP: "-"
 
 boolean: TRUE | FALSE
 integer: NUMBER
