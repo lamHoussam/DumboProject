@@ -6,7 +6,7 @@
         <h1>
             {{ 4*(integerValue+integ);
                 print ' and ';
-                true or false and false; }}
+                integ!=integerValue+integ-integerValue; }}
         </h1>
         Cours: {{ for c in cours do 
             print c.', ';

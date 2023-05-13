@@ -1,4 +1,4 @@
-from lark import Lark, Transformer
+from lark import Lark, Token, Transformer
 import argparse
 
 
@@ -23,39 +23,36 @@ class DumboTemplateEngine(Transformer):
         return ''.join(self.output)
     
     def evaluate_integer_expression(self, node):
-        print("Child: " + str(node))
-        if len(node.children) == 1:
+        children_num = len(node.children)
+        if children_num == 1:
             child = node.children[0]
             if child.data == 'integer':
-                print("Child : " + str(child.children[0]))
                 return int(str(child.children[0])) 
             elif child.data == 'variable':
                 variable_name = child.children[0]
                 return self.variables.get(variable_name)
             else:
                 return self.evaluate_integer_expression(child)
-        elif len(node.children) == 2:
+        elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
             return coeff * self.evaluate_integer_expression(node.children[1])
-            
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
             right_operand = self.evaluate_integer_expression(node.children[2])
 
             op_string = str(left_operand) + str(operator) + str(right_operand)
-            print("Expr : " + op_string)
             result = int(eval(op_string))
             
             return result
 
     def evaluate_boolean_expression(self, node):
         num_children = len(node.children)
+        print("Children : " + str(node.data) + " len : " + str(num_children))
         if num_children == 1:
             child = node.children[0]
             if child.data == 'boolean':
                 value = str(child.children[0])
-                print("Boolean litter : " + value)
                 return value == "true" 
             elif child.data == 'variable':
                 variable_name = child.children[0]
@@ -66,12 +63,19 @@ class DumboTemplateEngine(Transformer):
             bool_val = self.evaluate_boolean_expression(node.children[1])
             return not bool_val
         else:
-            left_side = self.evaluate_boolean_expression(node.children[0])
-            bool_op = str(node.children[1])
-            right_side = self.evaluate_boolean_expression(node.children[2])
+            if node.data == 'integer_comparison':
+                left_side = self.evaluate_integer_expression(node.children[0])
+                op = str(node.children[1])
+                if op == '=':
+                    op = '=='
+                right_side = self.evaluate_integer_expression(node.children[2])
+            else:
+                left_side = self.evaluate_boolean_expression(node.children[0])
+                op = str(node.children[1])
+                right_side = self.evaluate_boolean_expression(node.children[2])
 
-            print("Boolean expr : " + str(left_side) + ' ' + str(bool_op) + ' ' + str(right_side))
-            return left_side and right_side if bool_op == 'and' else left_side or right_side
+            string_expression = str(left_side) + " " + op + " " + str(right_side)
+            return bool(eval(string_expression))
         
 
 

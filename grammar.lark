@@ -46,14 +46,17 @@ factor: integer
         | "(" integer_expression ")"
 
 
-boolean_expression:  boolean
+boolean_expression: boolean
                     | boolean_expression OR boolean_expression
                     | boolean_expression AND boolean_expression
                     | NOT boolean_expression 
                     | "(" boolean_expression ")"
+                    | integer_comparison
+
+integer_comparison: integer_expression COMP integer_expression
 
 string: /'[^']*'/
-string_expression: string
+string_expression:  string
                     | variable
                     | string_expression "." string_expression
 
@@ -69,6 +72,8 @@ AND: "and"
 OR : "or"
 NOT: "not"
 SUB_OP: "-"
+
+COMP: "<" | ">" | "=" | "!="
 
 boolean: TRUE | FALSE
 integer: NUMBER
