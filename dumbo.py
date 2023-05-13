@@ -26,7 +26,8 @@ class DumboTemplateEngine(Transformer):
         if len(node.children) == 1:
             child = node.children[0]
             if child.data == 'integer':
-                return int(str(child)) 
+                print("Child : " + str(child.children[0]))
+                return int(str(child.children[0])) 
             elif child.data == 'variable':
                 variable_name = child.children[0]
                 return self.variables.get(variable_name)
@@ -64,6 +65,7 @@ class DumboTemplateEngine(Transformer):
             bool_op = str(node.children[1])
             right_side = self.evaluate_boolean_expression(node.children[2])
 
+            print("Boolean expr : " + str(left_side) + ' ' + str(bool_op) + ' ' + str(right_side))
             return left_side and right_side if bool_op == 'and' else left_side or right_side
         
 
@@ -112,7 +114,7 @@ def main():
     with open(template_file, 'r') as f:
         template_file_content = f.read()
 
-    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': False, 'integ': True}
+    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': 5, 'integ': 10}
     dumbo_engine = DumboTemplateEngine(variables=variables, grammar=grammar)
 
     output = dumbo_engine.render(template_file_content)

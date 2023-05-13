@@ -4,9 +4,9 @@
     </head>
     <body>
         <h1>
-            {{ integerValue+integ;
+            {{ 4*(integerValue+integ);
                 print ' and ';
-                not true or true and false; }}
+                true or false and false; }}
         </h1>
         Cours: {{ for c in cours do 
             print c.', ';

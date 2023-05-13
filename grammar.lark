@@ -42,6 +42,7 @@ term: factor
 
 factor: integer
         | variable
+        | "(" integer_expression ")"
 
 
 boolean_expression:  boolean
