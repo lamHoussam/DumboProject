@@ -28,11 +28,19 @@ sub_op: "-"
 mul_op: "*"
 div_op: "//"
 
-arithmetic_operator: add_op | sub_op | mul_op | div_op
+additive_op: add_op | sub_op
 
-integer_expression: integer
-                  | variable
-                  | integer_expression arithmetic_operator integer_expression
+multiplicative_op: mul_op | div_op
+operator: additive_op | multiplicative_op
+
+integer_expression: term
+                  | integer_expression additive_op term
+
+term: factor
+    | term multiplicative_op factor
+
+factor: integer
+      | variable
 
 string: /'[^']*'/
 string_expression: string

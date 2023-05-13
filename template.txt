@@ -6,7 +6,7 @@
         <h1>
             {{ integerValue+integ;
                 print ' and ';
-                integerValue*integ+integ; }}
+                integerValue+integ*integ; }}
         </h1>
         Cours: {{ for c in cours do 
             print c.', ';

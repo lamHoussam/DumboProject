@@ -23,22 +23,24 @@ class DumboTemplateEngine(Transformer):
         return ''.join(self.output)
     
     def evaluate_integer_expression(self, node):
-        print(node.children)
         if len(node.children) == 1:
             child = node.children[0]
             if child.data == 'integer':
                 return int(str(child)) 
-            else:
+            elif child.data == 'variable':
                 variable_name = child.children[0]
                 return self.variables.get(variable_name)
+            else:
+                return self.evaluate_integer_expression(child)
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
             right_operand = self.evaluate_integer_expression(node.children[2])
 
             op_string = str(left_operand) + str(operator) + str(right_operand)
+            print("Expr : " + op_string)
             result = int(eval(op_string))
-            print("Expr : " + op_string + " = " + str(result))
+            
             return result
 
 
@@ -57,7 +59,6 @@ class DumboTemplateEngine(Transformer):
         elif node.data == 'variable':
             variable_name = node.children[0]
             value = self.variables.get(variable_name)
-            print("Value : " + str(node))
             self.output.append(str(value))
         else:
             for child in node.children:
