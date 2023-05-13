@@ -49,7 +49,7 @@ boolean_expression:  boolean
                     | boolean_expression OR boolean_expression
                     | boolean_expression AND boolean_expression
                     | NOT boolean_expression 
-
+                    | "(" boolean_expression ")"
 
 string: /'[^']*'/
 string_expression: string
