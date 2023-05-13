@@ -6,7 +6,7 @@ operators = {
     "add_op":"+",
     "sub_op":"-",
     "mul_op":"*",
-    "div_op":"/",
+    "div_op":"/"
 }
 
 class DumboTemplateEngine(Transformer):
@@ -43,6 +43,30 @@ class DumboTemplateEngine(Transformer):
             
             return result
 
+    def evaluate_boolean_expression(self, node):
+        num_children = len(node.children)
+        if num_children == 1:
+            child = node.children[0]
+            if child.data == 'boolean':
+                value = str(child.children[0])
+                print("Boolean litter : " + value)
+                return value == "true" 
+            elif child.data == 'variable':
+                variable_name = child.children[0]
+                return self.variables.get(variable_name)
+            else:
+                return self.evaluate_boolean_expression(child)
+        elif num_children == 2:
+            bool_val = self.evaluate_boolean_expression(node.children[1])
+            return not bool_val
+        else:
+            left_side = self.evaluate_boolean_expression(node.children[0])
+            bool_op = str(node.children[1])
+            right_side = self.evaluate_boolean_expression(node.children[2])
+
+            return left_side and right_side if bool_op == 'and' else left_side or right_side
+        
+
 
     def traverse_tree(self, node):
         if isinstance(node, str):
@@ -52,6 +76,9 @@ class DumboTemplateEngine(Transformer):
             value = node.children[0]
             # For now remove all instances of "'"
             self.output.append(str(value).strip("'"))
+        elif node.data == 'boolean_expression':
+            result = self.evaluate_boolean_expression(node)
+            self.output.append(str(result))
         elif node.data == 'integer_expression':
             result = self.evaluate_integer_expression(node)
             print("Got result : " + str(result))
@@ -85,7 +112,7 @@ def main():
     with open(template_file, 'r') as f:
         template_file_content = f.read()
 
-    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': 5, 'integ': 2}
+    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': False, 'integ': True}
     dumbo_engine = DumboTemplateEngine(variables=variables, grammar=grammar)
 
     output = dumbo_engine.render(template_file_content)

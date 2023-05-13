@@ -21,6 +21,7 @@ expression: "print" string_expression
             | variable ":=" string_expression
             | variable ":=" string_list
             | integer_expression
+            | boolean_expression
 
 
 add_op: "+"
@@ -40,7 +41,14 @@ term: factor
     | term multiplicative_op factor
 
 factor: integer
-      | variable
+        | variable
+
+
+boolean_expression:  boolean
+                    | boolean_expression OR boolean_expression
+                    | boolean_expression AND boolean_expression
+                    | NOT boolean_expression 
+
 
 string: /'[^']*'/
 string_expression: string
@@ -53,5 +61,12 @@ string_list_interior: string
                     | string "," string_list_interior
 
 
+TRUE : "true"
+FALSE: "false"
+AND: "and"
+OR : "or"
+NOT: "not"
+
+boolean: TRUE | FALSE
 integer: NUMBER
 variable: CNAME

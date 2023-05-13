@@ -6,7 +6,7 @@
         <h1>
             {{ integerValue+integ;
                 print ' and ';
-                integerValue+integ*integ; }}
+                not true or true and false; }}
         </h1>
         Cours: {{ for c in cours do 
             print c.', ';
