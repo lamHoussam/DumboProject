@@ -98,6 +98,8 @@ class DumboTemplateEngine(Transformer):
                 collection = self.variables.get(collection_node.children[0])
             else:
                 collection = self.evaluate_string_list(node.children[1])
+                collection = tuple(element.strip("'") for element in collection)
+                
             size = len(collection)
             # print("Expression for : " + str(node.children[2]))
             if size != 0:

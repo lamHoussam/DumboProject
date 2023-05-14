@@ -8,8 +8,10 @@
                 print ' and ';
                 integ!=integerValue+integ-integerValue; }}
         </h1>
-        Cours: {{ for c in cours do 
-            print c.', ';
+        Cours: {{ for c in ('Maths', 'Info') do 
+            for j in ('Test', 'Element') do
+                print c.', '.' : '.j;
+            endfor;
         endfor;
         }}
     </body>
