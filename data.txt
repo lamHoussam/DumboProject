@@ -1,4 +1,5 @@
 {{
     nom := 'Brouette';
     prenom := 'Quentin';
+    cours := ('Maths', 'Info');
 }}

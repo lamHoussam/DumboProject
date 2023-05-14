@@ -17,11 +17,15 @@ expressions_list: expression ";" expressions_list
 
 expression: "print" string_expression
             | for_loop
-            | variable ":=" string_expression
-            | variable ":=" string_list
+            | assign_statement
             | integer_expression
             | boolean_expression
             | if_statement
+
+assign_statement: variable ":=" string
+                | variable ":=" string_expression "." string_expression
+                | variable ":=" integer_expression
+                | variable ":=" string_list
 
 for_loop: "for" variable "in" string_list "do" expressions_list "endfor"
             | "for" variable "in" variable "do" expressions_list "endfor"
@@ -60,9 +64,9 @@ boolean_expression: boolean
 integer_comparison: integer_expression COMP integer_expression
 
 string: /'[^']*'/
-string_expression:  string
-                    | variable
-                    | string_expression "." string_expression
+string_expression: string
+                | variable
+                | string_expression "." string_expression
 
 string_list: "(" string_list_interior ")"
 

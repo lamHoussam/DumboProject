@@ -10,14 +10,19 @@ operators = {
 }
 
 class DumboTemplateEngine(Transformer):
-    def __init__(self, variables, grammar):
-        self.variables = variables
+    def __init__(self, grammar):
+        self.variables = {}
         self.template_grammar = grammar
         self.output = []
+        self.parser = Lark(self.template_grammar, start='programme', parser='lalr')
+
+    def load_variables_data(self, data):
+        tree = self.parser.parse(data)
+        self.traverse_tree(tree)
+        print("Variables : " + str(self.variables))
 
     def render(self, template):
-        parser = Lark(self.template_grammar, start='programme', parser='lalr')
-        tree = parser.parse(template)
+        tree = self.parser.parse(template)
         self.output = []
         self.traverse_tree(tree)
         return ''.join(self.output)
@@ -54,7 +59,6 @@ class DumboTemplateEngine(Transformer):
 
     def evaluate_boolean_expression(self, node):
         num_children = len(node.children)
-        print("Children : " + str(node.data) + " len : " + str(num_children))
         if num_children == 1:
             child = node.children[0]
             if child.data == 'boolean':
@@ -87,10 +91,18 @@ class DumboTemplateEngine(Transformer):
         if isinstance(node, str):
             self.output.append(node)
         elif node.data == 'string':
-            print(node)
             value = node.children[0]
             # For now remove all instances of "'"
             self.output.append(str(value).strip("'"))
+
+        elif node.data == 'assign_statement':
+            var_name = ''.join(node.children[0].scan_values(lambda v: isinstance(v, Token)))
+            var_value = ','.join(node.children[1].scan_values(lambda v: isinstance(v, Token)))
+
+            lst = var_value.split(",")
+            var_value = var_value.strip("'") if len(lst) == 1 else tuple(lst)
+            self.variables[var_name] = var_value
+
         elif node.data == 'for_loop':
             collection_node = node.children[1]
             iter_var_name = str(node.children[0].children[0])
@@ -99,7 +111,9 @@ class DumboTemplateEngine(Transformer):
             else:
                 collection = self.evaluate_string_list(node.children[1])
                 collection = tuple(element.strip("'") for element in collection)
-                
+            
+            if collection is None:
+                return
             size = len(collection)
             # print("Expression for : " + str(node.children[2]))
             if size != 0:
@@ -115,9 +129,7 @@ class DumboTemplateEngine(Transformer):
                 del self.variables[iter_var_name]
 
         elif node.data == 'if_statement':
-            print("condition : " + str(node.children[0]))
             condition = self.evaluate_boolean_expression(node.children[0])
-            print("if statement : " + str(node.children[1]))
             if condition:
                 self.traverse_tree(node.children[1])
         elif node.data == 'boolean_expression':
@@ -125,7 +137,6 @@ class DumboTemplateEngine(Transformer):
             self.output.append(str(result))
         elif node.data == 'integer_expression':
             result = self.evaluate_integer_expression(node)
-            print("Got result : " + str(result))
             self.output.append(str(result))
         elif node.data == 'variable':
             variable_name = node.children[0]
@@ -137,7 +148,7 @@ class DumboTemplateEngine(Transformer):
 
 
 def main():
-    arg_parser = argparse.ArgumentParser(description='Dumbo programming language')
+    arg_parser = argparse.ArgumentParser(description='Dumbo Template Engine')
     
     arg_parser.add_argument('data_file', metavar='data_file', type=str, help='A file containing Dumbo code declaring variables and data')
     arg_parser.add_argument('template_file', metavar='template_file', type=str, help='A file containing text and Dumbo code to inject data into')
@@ -153,12 +164,16 @@ def main():
     with open('grammar.lark', 'r') as f:
         grammar = f.read()
 
+    with open(data_file, 'r') as f:
+        data = f.read()
+
     with open(template_file, 'r') as f:
         template_file_content = f.read()
 
-    variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': 5, 'integ': 10}
-    dumbo_engine = DumboTemplateEngine(variables=variables, grammar=grammar)
+    # variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': 5, 'integ': 10}
+    dumbo_engine = DumboTemplateEngine(grammar=grammar)
 
+    dumbo_engine.load_variables_data(data=data)
     output = dumbo_engine.render(template_file_content)
     with open("output.txt", 'w') as f:
         f.write(str(output))
