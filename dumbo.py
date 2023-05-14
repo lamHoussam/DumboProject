@@ -11,15 +11,16 @@ operators = {
 
 class DumboTemplateEngine(Transformer):
     def __init__(self, grammar):
-        self.variables = {}
+        self.global_variables = {}
+        self.local_variables = {}
         self.template_grammar = grammar
         self.output = []
         self.parser = Lark(self.template_grammar, start='programme', parser='lalr')
 
     def load_variables_data(self, data):
         tree = self.parser.parse(data)
-        self.traverse_tree(tree)
-        print("Variables : " + str(self.variables))
+        self.traverse_tree(tree, True)
+        print("Variables : " + str(self.global_variables))
 
     def render(self, template):
         tree = self.parser.parse(template)
@@ -41,7 +42,10 @@ class DumboTemplateEngine(Transformer):
                 return int(str(child.children[0])) 
             elif child.data == 'variable':
                 variable_name = child.children[0]
-                return self.variables.get(variable_name)
+                value = self.local_variables.get(variable_name)
+                if value is None:
+                    value = self.global_variables.get(variable_name)
+                return value
             else:
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
@@ -66,7 +70,10 @@ class DumboTemplateEngine(Transformer):
                 return value == "true" 
             elif child.data == 'variable':
                 variable_name = child.children[0]
-                return self.variables.get(variable_name)
+                value = self.local_variables.get(variable_name)
+                if value is None:
+                    value = self.global_variables.get(variable_name)
+                return value
             else:
                 return self.evaluate_boolean_expression(child)
         elif num_children == 2:
@@ -87,7 +94,7 @@ class DumboTemplateEngine(Transformer):
             string_expression = str(left_side) + " " + op + " " + str(right_side)
             return bool(eval(string_expression))
 
-    def traverse_tree(self, node):
+    def traverse_tree(self, node, loading_data = False):
         if isinstance(node, str):
             self.output.append(node)
         elif node.data == 'string':
@@ -97,17 +104,26 @@ class DumboTemplateEngine(Transformer):
 
         elif node.data == 'assign_statement':
             var_name = ''.join(node.children[0].scan_values(lambda v: isinstance(v, Token)))
-            var_value = ','.join(node.children[1].scan_values(lambda v: isinstance(v, Token)))
-
+            value_node = node.children[1]
+            var_value = ','.join(value_node.scan_values(lambda v: isinstance(v, Token)))
             lst = var_value.split(",")
+
+            
             var_value = var_value.strip("'") if len(lst) == 1 else tuple(lst)
-            self.variables[var_name] = var_value
+            if value_node.data == 'integer_expression':
+                var_value = self.evaluate_integer_expression(value_node)
+
+            variables_dict = self.global_variables if loading_data else self.local_variables
+            variables_dict[var_name] = var_value
+            print("Variables : " + str(variables_dict))
 
         elif node.data == 'for_loop':
             collection_node = node.children[1]
             iter_var_name = str(node.children[0].children[0])
             if collection_node.data == 'variable':
-                collection = self.variables.get(collection_node.children[0])
+                collection = self.local_variables.get(collection_node.children[0])
+                if collection is None:
+                    collection = self.global_variables.get(collection_node.children[0])
             else:
                 collection = self.evaluate_string_list(node.children[1])
                 collection = tuple(element.strip("'") for element in collection)
@@ -118,20 +134,20 @@ class DumboTemplateEngine(Transformer):
             # print("Expression for : " + str(node.children[2]))
             if size != 0:
                 i = 0
-                self.variables[iter_var_name] = collection[i]
+                self.local_variables[iter_var_name] = collection[i]
                 while (True):
-                    self.traverse_tree(node.children[2])
+                    self.traverse_tree(node.children[2], loading_data)
                     i+=1
                     if i >= size:
                         break
-                    self.variables[iter_var_name] = collection[i]
+                    self.local_variables[iter_var_name] = collection[i]
                 
-                del self.variables[iter_var_name]
+                del self.local_variables[iter_var_name]
 
         elif node.data == 'if_statement':
             condition = self.evaluate_boolean_expression(node.children[0])
             if condition:
-                self.traverse_tree(node.children[1])
+                self.traverse_tree(node.children[1], loading_data)
         elif node.data == 'boolean_expression':
             result = self.evaluate_boolean_expression(node)
             self.output.append(str(result))
@@ -140,11 +156,13 @@ class DumboTemplateEngine(Transformer):
             self.output.append(str(result))
         elif node.data == 'variable':
             variable_name = node.children[0]
-            value = self.variables.get(variable_name)
+            value = self.local_variables.get(variable_name)
+            if value is None:
+                value = self.global_variables.get(variable_name)
             self.output.append(str(value))
         else:
             for child in node.children:
-                self.traverse_tree(child)
+                self.traverse_tree(child, loading_data)
 
 
 def main():
