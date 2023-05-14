@@ -12,9 +12,8 @@ txt: /[^{}]+/
 
 dumbo_bloc: "{{" expressions_list "}}"
 
-expressions_list: expression ";" expressions_list
-                | expression ";"
-
+expressions_list: expression ";" expressions_list | 
+                
 expression: "print" string_expression
             | for_loop
             | assign_statement

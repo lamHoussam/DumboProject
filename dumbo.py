@@ -20,7 +20,7 @@ class DumboTemplateEngine(Transformer):
     def load_variables_data(self, data):
         tree = self.parser.parse(data)
         self.traverse_tree(tree, True)
-        print("Variables : " + str(self.global_variables))
+        # print("Variables : " + str(self.global_variables))
 
     def render(self, template):
         tree = self.parser.parse(template)
@@ -50,6 +50,8 @@ class DumboTemplateEngine(Transformer):
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
+            if coeff is None:
+                return 0
             return coeff * self.evaluate_integer_expression(node.children[1])
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
@@ -115,7 +117,7 @@ class DumboTemplateEngine(Transformer):
 
             variables_dict = self.global_variables if loading_data else self.local_variables
             variables_dict[var_name] = var_value
-            print("Variables : " + str(variables_dict))
+            # print("Variables : " + str(variables_dict))
 
         elif node.data == 'for_loop':
             collection_node = node.children[1]
