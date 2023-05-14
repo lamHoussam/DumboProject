@@ -1,4 +1,4 @@
-from lark import Lark, Token, Transformer
+from lark import Lark, Token, Transformer, UnexpectedToken
 import argparse
 
 
@@ -9,6 +9,9 @@ operators = {
     "div_op":"/"
 }
 
+class DumboTemplateEngineError(Exception):
+    pass
+
 class DumboTemplateEngine(Transformer):
     def __init__(self, grammar):
         self.global_variables = {}
@@ -18,15 +21,27 @@ class DumboTemplateEngine(Transformer):
         self.parser = Lark(self.template_grammar, start='programme', parser='lalr')
 
     def load_variables_data(self, data):
-        tree = self.parser.parse(data)
-        self.traverse_tree(tree, True)
+        try:
+            tree = self.parser.parse(data)
+            self.traverse_tree(tree, True)
+        except UnexpectedToken as e:
+            line, column = e.line, e.column
+            error_message = f"Syntax error at line {line}, column {column}: {e}"
+            raise DumboTemplateEngineError(error_message)
+
+
         # print("Variables : " + str(self.global_variables))
 
     def render(self, template):
-        tree = self.parser.parse(template)
-        self.output = []
-        self.traverse_tree(tree)
-        return ''.join(self.output)
+        try:
+            tree = self.parser.parse(template)
+            self.output = []
+            self.traverse_tree(tree)
+            return ''.join(self.output)
+        except UnexpectedToken as e:
+            line, column = e.line, e.column
+            error_message = f"Syntax error at line {line}, column {column}: {e}"
+            raise DumboTemplateEngineError(error_message)
     
     def evaluate_string_list(self, node):
         all_elements = node.scan_values(lambda v: isinstance(v, Token))
@@ -50,9 +65,7 @@ class DumboTemplateEngine(Transformer):
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
-            if coeff is None:
-                return 0
-            return coeff * self.evaluate_integer_expression(node.children[1])
+            return int(coeff) * int(self.evaluate_integer_expression(node.children[1]))
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
@@ -181,24 +194,30 @@ def main():
     print(f'Data file: {args.data_file}')
     print(f'Template file: {template_file}')
 
-    with open('grammar.lark', 'r') as f:
-        grammar = f.read()
+    try:
+        with open('grammar.lark', 'r') as f:
+            grammar = f.read()
 
-    with open(data_file, 'r') as f:
-        data = f.read()
+        with open(data_file, 'r') as f:
+            data = f.read()
 
-    with open(template_file, 'r') as f:
-        template_file_content = f.read()
+        with open(template_file, 'r') as f:
+            template_file_content = f.read()
 
-    # variables = {"nom": "Lamlih", "prenom": "Houssam", "cours": ('Maths', 'Info'), 'integerValue': 5, 'integ': 10}
-    dumbo_engine = DumboTemplateEngine(grammar=grammar)
+        dumbo_engine = DumboTemplateEngine(grammar=grammar)
 
-    dumbo_engine.load_variables_data(data=data)
-    output = dumbo_engine.render(template_file_content)
-    with open("output.txt", 'w') as f:
-        f.write(str(output))
-
-    print(output)
+        try:
+            dumbo_engine.load_variables_data(data=data)
+            output = dumbo_engine.render(template_file_content)
+            with open("output.txt", 'w') as f:
+                f.write(str(output))
+            print(output)
+        except DumboTemplateEngineError as e:
+            print(f"Dumbo Template engine error: {e}")
+    except FileNotFoundError as e:
+        print(f"File not found: {e.filename}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 if __name__ == '__main__':
