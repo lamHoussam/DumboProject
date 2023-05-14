@@ -1,6 +1,5 @@
 from lark import Lark, Token, Transformer, UnexpectedToken
-import argparse
-
+from argparse import ArgumentParser
 
 operators = {
     "add_op": "+",
@@ -68,8 +67,7 @@ class DumboTemplateEngine(Transformer):
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
-            return int(coeff) * \
-                int(self.evaluate_integer_expression(node.children[1]))
+            return int(coeff) * int(self.evaluate_integer_expression(node.children[1]))
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
@@ -194,7 +192,7 @@ class DumboTemplateEngine(Transformer):
 
 
 def main():
-    arg_parser = argparse.ArgumentParser(description='Dumbo Template Engine')
+    arg_parser = ArgumentParser(description='Dumbo Template Engine')
 
     arg_parser.add_argument(
         'data_file',
