@@ -22,6 +22,12 @@ class DumboTemplateEngine(Transformer):
         self.traverse_tree(tree)
         return ''.join(self.output)
     
+    def evaluate_string_list(self, node):
+        all_elements = node.scan_values(lambda v: isinstance(v, Token))
+        lst = ','.join(all_elements).split(",")
+        return tuple(lst)
+        
+    
     def evaluate_integer_expression(self, node):
         children_num = len(node.children)
         if children_num == 1:
@@ -85,6 +91,27 @@ class DumboTemplateEngine(Transformer):
             value = node.children[0]
             # For now remove all instances of "'"
             self.output.append(str(value).strip("'"))
+        elif node.data == 'for_loop':
+            collection_node = node.children[1]
+            iter_var_name = str(node.children[0].children[0])
+            if collection_node.data == 'variable':
+                collection = self.variables.get(collection_node.children[0])
+            else:
+                collection = self.evaluate_string_list(node.children[1])
+            size = len(collection)
+            # print("Expression for : " + str(node.children[2]))
+            if size != 0:
+                i = 0
+                self.variables[iter_var_name] = collection[i]
+                while (True):
+                    self.traverse_tree(node.children[2])
+                    i+=1
+                    if i >= size:
+                        break
+                    self.variables[iter_var_name] = collection[i]
+                
+                del self.variables[iter_var_name]
+
         elif node.data == 'if_statement':
             print("condition : " + str(node.children[0]))
             condition = self.evaluate_boolean_expression(node.children[0])

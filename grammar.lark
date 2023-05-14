@@ -16,13 +16,15 @@ expressions_list: expression ";" expressions_list
                 | expression ";"
 
 expression: "print" string_expression
-            | "for" variable "in" string_list "do" expressions_list "endfor"
-            | "for" variable "in" variable "do" expressions_list "endfor"
+            | for_loop
             | variable ":=" string_expression
             | variable ":=" string_list
             | integer_expression
             | boolean_expression
             | if_statement
+
+for_loop: "for" variable "in" string_list "do" expressions_list "endfor"
+            | "for" variable "in" variable "do" expressions_list "endfor"
 
 if_statement: "if" boolean_expression "do" expressions_list "endif"
 
