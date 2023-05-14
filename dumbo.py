@@ -64,20 +64,18 @@ class DumboTemplateEngine(Transformer):
             return not bool_val
         else:
             if node.data == 'integer_comparison':
-                left_side = self.evaluate_integer_expression(node.children[0])
-                op = str(node.children[1])
-                if op == '=':
-                    op = '=='
-                right_side = self.evaluate_integer_expression(node.children[2])
+                evaluation_function = self.evaluate_integer_expression
             else:
-                left_side = self.evaluate_boolean_expression(node.children[0])
-                op = str(node.children[1])
-                right_side = self.evaluate_boolean_expression(node.children[2])
+                evaluation_function = self.evaluate_boolean_expression
+
+            left_side = evaluation_function(node.children[0])
+            op = str(node.children[1])
+            if op == '=':
+                op = '=='
+            right_side = evaluation_function(node.children[2])
 
             string_expression = str(left_side) + " " + op + " " + str(right_side)
             return bool(eval(string_expression))
-        
-
 
     def traverse_tree(self, node):
         if isinstance(node, str):
@@ -87,6 +85,12 @@ class DumboTemplateEngine(Transformer):
             value = node.children[0]
             # For now remove all instances of "'"
             self.output.append(str(value).strip("'"))
+        elif node.data == 'if_statement':
+            print("condition : " + str(node.children[0]))
+            condition = self.evaluate_boolean_expression(node.children[0])
+            print("if statement : " + str(node.children[1]))
+            if condition:
+                self.traverse_tree(node.children[1])
         elif node.data == 'boolean_expression':
             result = self.evaluate_boolean_expression(node)
             self.output.append(str(result))

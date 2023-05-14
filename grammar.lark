@@ -22,7 +22,9 @@ expression: "print" string_expression
             | variable ":=" string_list
             | integer_expression
             | boolean_expression
+            | if_statement
 
+if_statement: "if" boolean_expression "do" expressions_list "endif"
 
 add_op: "+"
 sub_op: "-"

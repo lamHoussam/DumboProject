@@ -10,6 +10,11 @@
         </h1>
         Cours: {{ for c in cours do 
             print c.', ';
-        endfor; }}
+        endfor;
+            if integ=integerValue+integ-integerValue do
+                print 'Pinted';
+            endif;
+            print 'Test';
+        }}
     </body>
 </html>
