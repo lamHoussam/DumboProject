@@ -3,14 +3,16 @@ import argparse
 
 
 operators = {
-    "add_op":"+",
-    "sub_op":"-",
-    "mul_op":"*",
-    "div_op":"/"
+    "add_op": "+",
+    "sub_op": "-",
+    "mul_op": "*",
+    "div_op": "/"
 }
+
 
 class DumboTemplateEngineError(Exception):
     pass
+
 
 class DumboTemplateEngine(Transformer):
     def __init__(self, grammar):
@@ -18,7 +20,10 @@ class DumboTemplateEngine(Transformer):
         self.local_variables = {}
         self.template_grammar = grammar
         self.output = []
-        self.parser = Lark(self.template_grammar, start='programme', parser='lalr')
+        self.parser = Lark(
+            self.template_grammar,
+            start='programme',
+            parser='lalr')
 
     def load_variables_data(self, data):
         try:
@@ -28,7 +33,6 @@ class DumboTemplateEngine(Transformer):
             line, column = e.line, e.column
             error_message = f"Syntax error at line {line}, column {column}: {e}"
             raise DumboTemplateEngineError(error_message)
-
 
         # print("Variables : " + str(self.global_variables))
 
@@ -42,19 +46,18 @@ class DumboTemplateEngine(Transformer):
             line, column = e.line, e.column
             error_message = f"Syntax error at line {line}, column {column}: {e}"
             raise DumboTemplateEngineError(error_message)
-    
+
     def evaluate_string_list(self, node):
         all_elements = node.scan_values(lambda v: isinstance(v, Token))
         lst = ','.join(all_elements).split(",")
         return tuple(lst)
-        
-    
+
     def evaluate_integer_expression(self, node):
         children_num = len(node.children)
         if children_num == 1:
             child = node.children[0]
             if child.data == 'integer':
-                return int(str(child.children[0])) 
+                return int(str(child.children[0]))
             elif child.data == 'variable':
                 variable_name = child.children[0]
                 value = self.local_variables.get(variable_name)
@@ -65,7 +68,8 @@ class DumboTemplateEngine(Transformer):
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
-            return int(coeff) * int(self.evaluate_integer_expression(node.children[1]))
+            return int(coeff) * \
+                int(self.evaluate_integer_expression(node.children[1]))
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
@@ -73,7 +77,7 @@ class DumboTemplateEngine(Transformer):
 
             op_string = str(left_operand) + str(operator) + str(right_operand)
             result = int(eval(op_string))
-            
+
             return result
 
     def evaluate_boolean_expression(self, node):
@@ -82,7 +86,7 @@ class DumboTemplateEngine(Transformer):
             child = node.children[0]
             if child.data == 'boolean':
                 value = str(child.children[0])
-                return value == "true" 
+                return value == "true"
             elif child.data == 'variable':
                 variable_name = child.children[0]
                 value = self.local_variables.get(variable_name)
@@ -106,10 +110,11 @@ class DumboTemplateEngine(Transformer):
                 op = '=='
             right_side = evaluation_function(node.children[2])
 
-            string_expression = str(left_side) + " " + op + " " + str(right_side)
+            string_expression = str(left_side) + " " + \
+                op + " " + str(right_side)
             return bool(eval(string_expression))
 
-    def traverse_tree(self, node, loading_data = False):
+    def traverse_tree(self, node, loading_data=False):
         if isinstance(node, str):
             self.output.append(node)
         elif node.data == 'string':
@@ -118,12 +123,17 @@ class DumboTemplateEngine(Transformer):
             self.output.append(str(value).strip("'"))
 
         elif node.data == 'assign_statement':
-            var_name = ''.join(node.children[0].scan_values(lambda v: isinstance(v, Token)))
+            var_name = ''.join(
+                node.children[0].scan_values(
+                    lambda v: isinstance(
+                        v, Token)))
             value_node = node.children[1]
-            var_value = ','.join(value_node.scan_values(lambda v: isinstance(v, Token)))
+            var_value = ','.join(
+                value_node.scan_values(
+                    lambda v: isinstance(
+                        v, Token)))
             lst = var_value.split(",")
 
-            
             var_value = var_value.strip("'") if len(lst) == 1 else tuple(lst)
             if value_node.data == 'integer_expression':
                 var_value = self.evaluate_integer_expression(value_node)
@@ -136,13 +146,16 @@ class DumboTemplateEngine(Transformer):
             collection_node = node.children[1]
             iter_var_name = str(node.children[0].children[0])
             if collection_node.data == 'variable':
-                collection = self.local_variables.get(collection_node.children[0])
+                collection = self.local_variables.get(
+                    collection_node.children[0])
                 if collection is None:
-                    collection = self.global_variables.get(collection_node.children[0])
+                    collection = self.global_variables.get(
+                        collection_node.children[0])
             else:
                 collection = self.evaluate_string_list(node.children[1])
-                collection = tuple(element.strip("'") for element in collection)
-            
+                collection = tuple(element.strip("'")
+                                   for element in collection)
+
             if collection is None:
                 return
             size = len(collection)
@@ -152,11 +165,11 @@ class DumboTemplateEngine(Transformer):
                 self.local_variables[iter_var_name] = collection[i]
                 while (True):
                     self.traverse_tree(node.children[2], loading_data)
-                    i+=1
+                    i += 1
                     if i >= size:
                         break
                     self.local_variables[iter_var_name] = collection[i]
-                
+
                 del self.local_variables[iter_var_name]
 
         elif node.data == 'if_statement':
@@ -182,9 +195,17 @@ class DumboTemplateEngine(Transformer):
 
 def main():
     arg_parser = argparse.ArgumentParser(description='Dumbo Template Engine')
-    
-    arg_parser.add_argument('data_file', metavar='data_file', type=str, help='A file containing Dumbo code declaring variables and data')
-    arg_parser.add_argument('template_file', metavar='template_file', type=str, help='A file containing text and Dumbo code to inject data into')
+
+    arg_parser.add_argument(
+        'data_file',
+        metavar='data_file',
+        type=str,
+        help='A file containing Dumbo code declaring variables and data')
+    arg_parser.add_argument(
+        'template_file',
+        metavar='template_file',
+        type=str,
+        help='A file containing text and Dumbo code to inject data into')
 
     args = arg_parser.parse_args()
 
