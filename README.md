@@ -2,7 +2,13 @@
 
 ## By *Carlos María del Pino* and *Lamlih Houssam*
 
-Le moteur de template Dumbo repose sur une grammaire modifiée de Lark, adaptée à nos besoins spécifiques. Nous présenterons en détail cette grammaire, en expliquant les règles modifiées et les ajouts que nous avons apportés pour répondre aux exigences de notre projet. Pour utiliser le moteur il faut éxecuter la commande suivante:
+Le moteur de template Dumbo repose sur une grammaire modifiée de Lark, adaptée à nos besoins spécifiques. Nous présenterons en détail cette grammaire, en expliquant les règles modifiées et les ajouts que nous avons apportés pour répondre aux exigences de notre projet. Pour utiliser le moteur il faut tout d'abord installer les requirements:
+
+```powershell
+pip install -r requirements.txt
+```
+
+Et ensuite vous pouvez éxecuter le programme comme ceci:
 
 ```powershell
 usage: dumbo.py [-h] [--output_file output_file] data_file template_file

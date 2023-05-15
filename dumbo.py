@@ -10,11 +10,31 @@ operators = {
 
 
 class DumboTemplateEngineError(Exception):
+    """Exception déclenchée pour les erreurs dans le moteur de template Dumbo."""
     pass
 
 
 class DumboTemplateEngine():
+
+    """Moteur de template Dumbo.
+
+    Ce moteur de template utilise la grammaire spécifiée pour analyser
+    les modèles et évaluer les expressions pour générer la sortie finale.
+
+    Args:
+        grammar (str): La grammaire du moteur de template.
+
+    Attributes:
+        global_variables (dict): Les variables globales du moteur de template (data_file).
+        local_variables (dict): Les variables locales de la template.
+        template_grammar (str): La grammaire utilisée pour l'analyse des modèles.
+        output (list): La liste contenant la sortie générée.
+        parser (Lark): L'analyseur syntaxique Lark utilisé pour l'analyse des modèles.
+    """
+
     def __init__(self, grammar):
+        """Initialise le moteur de template avec la grammaire spécifiée."""
+
         self.global_variables = {}
         self.local_variables = {}
         self.template_grammar = grammar
@@ -25,6 +45,19 @@ class DumboTemplateEngine():
             parser='lalr')
 
     def load_variables_data(self, data):
+        """Charge les données des variables dans le moteur de template.
+
+        Analyse les données spécifiées en utilisant l'analyseur syntaxique
+        pour extraire les variables et leurs valeurs. Les variables sont
+        ajoutées au dictionnaire des variables globales.
+
+        Args:
+            data (str): Les données des variables.
+
+        Raises:
+            DumboTemplateEngineError: Si une erreur de syntaxe est rencontrée lors de l'analyse.
+        """
+
         try:
             tree = self.parser.parse(data)
             self.traverse_tree(tree, True)
@@ -36,6 +69,21 @@ class DumboTemplateEngine():
         # print(f"Variables : {self.global_variables}")
 
     def render(self, template):
+        """Génère la sortie en utilisant le modèle spécifié.
+
+        Analyse le modèle en utilisant l'analyseur syntaxique et évalue les
+        expressions pour générer la sortie finale.
+
+        Args:
+            template (str): La template à traiter.
+
+        Returns:
+            str: La sortie générée à partir du modèle.
+
+        Raises:
+            DumboTemplateEngineError: Si une erreur de syntaxe est rencontrée lors de l'analyse.
+        """
+
         try:
             tree = self.parser.parse(template)
             self.output = []
@@ -47,11 +95,36 @@ class DumboTemplateEngine():
             raise DumboTemplateEngineError(error_message)
 
     def evaluate_string_list(self, node):
+        """Évalue une liste de chaînes de caractères.
+
+        Parcourt le noeud spécifié et retourne une liste de chaînes de caractères
+        en extrayant les valeurs des noeud Token.
+
+        Args:
+            node (lark.tree.Tree): Le noeud à évaluer.
+
+        Returns:
+            tuple: La liste de chaînes de caractères.
+
+        """
+
         all_elements = node.scan_values(lambda v: isinstance(v, Token))
         lst = ','.join(all_elements).split(",")
         return tuple(lst)
 
     def evaluate_integer_expression(self, node):
+        """Évalue une expression entière.
+
+        Évalue l'expression entière représentée par le noeud spécifié et retourne
+        le résultat de l'évaluation.
+
+        Args:
+            node (lark.tree.Tree): Le noeud représentant l'expression entière.
+
+        Returns:
+            int: Le résultat de l'évaluation de l'expression entière.
+
+        """
         children_num = len(node.children)
         if children_num == 1:
             child = node.children[0]
@@ -80,6 +153,18 @@ class DumboTemplateEngine():
             return result
 
     def evaluate_boolean_expression(self, node):
+        """Évalue une expression booléenne.
+
+        Évalue l'expression booléenne représentée par le noeud spécifié et retourne
+        le résultat de l'évaluation.
+
+        Args:
+            node (lark.tree.Tree): Le noeud représentant l'expression booléenne.
+
+        Returns:
+            bool: Le résultat de l'évaluation de l'expression booléenne.
+
+        """
         num_children = len(node.children)
         if num_children == 1:
             child = node.children[0]
@@ -114,6 +199,25 @@ class DumboTemplateEngine():
             return bool(eval(string_expression))
 
     def traverse_tree(self, node, loading_data=False):
+        """Parcourt récursivement l'arbre syntaxique et évalue les noeuds.
+
+        Parcourt récursivement l'arbre syntaxique représenté par le noeud spécifié
+        et évalue chaque noeud en fonction de son type. Les noeuds peuvent être des
+        expressions, des variables, des opérations, etc. L'évaluation des noeuds
+        dépend du contexte : soit les variables sont ajoutées au dictionnaire des
+        variables globales, soit variables locales, soit les expressions sont évaluées et le résultat est
+        ajouté à la sortie générée.
+
+        Args:
+            node (lark.tree.Tree): Le noeud à parcourir et évaluer.
+            is_variable_data (bool, optional): Indique si le parcours est effectué
+                pour des données chargées depuis data_file. Par défaut False.
+
+        Returns:
+            None
+
+        """
+
         if isinstance(node, str):
             self.output.append(node)
         elif node.data == 'string':
