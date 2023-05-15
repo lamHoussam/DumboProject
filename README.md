@@ -6,6 +6,17 @@ Le moteur de template Dumbo repose sur une grammaire modifiée de Lark, adaptée
 
 ```powershell
 usage: dumbo.py [-h] [--output_file output_file] data_file template_file
+
+Dumbo Template Engine
+
+positional arguments:
+  data_file             A file containing Dumbo code declaring variables and data
+  template_file         A file containing text and Dumbo code to inject data into
+
+options:
+  -h, --help            show this help message and exit
+  --output_file output_file
+                        Output file path
 ```
 
 1. ### Description des principales règles de la grammaire
