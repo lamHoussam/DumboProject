@@ -2,41 +2,45 @@
 
 ## By *Carlos María del Pino* and *Lamlih Houssam*
 
-Le moteur de template Dumbo repose sur une grammaire modifiée de Lark, adaptée à nos besoins spécifiques. Nous présenterons en détail cette grammaire, en expliquant les règles modifiées et les ajouts que nous avons apportés pour répondre aux exigences de notre projet.
+Le moteur de template Dumbo repose sur une grammaire modifiée de Lark, adaptée à nos besoins spécifiques. Nous présenterons en détail cette grammaire, en expliquant les règles modifiées et les ajouts que nous avons apportés pour répondre aux exigences de notre projet. Pour utiliser le moteur il faut éxecuter la commande suivante:
+
+```powershell
+usage: dumbo.py [-h] [--output_file output_file] data_file template_file
+```
 
 1. ### Description des principales règles de la grammaire
 
     1. `start: programme`
 
-            Cette règle définit le point d'entrée de notre grammaire, qui est le programme global du template.
+        Cette règle définit le point d'entrée de notre grammaire, qui est le programme global du template.
 
     2. `programme: txt | txt programme | dumbo_bloc | dumbo_bloc programme`
 
-            Cette règle permet de définir un programme comme une séquence de blocs de texte (txt) et de blocs Dumbo (dumbo_bloc). Un programme peut contenir plusieurs blocs de texte et de blocs Dumbo, qui peuvent être intercalés dans n'importe quel ordre.
+        Cette règle permet de définir un programme comme une séquence de blocs de texte (txt) et de blocs Dumbo (dumbo_bloc). Un programme peut contenir plusieurs blocs de texte et de blocs Dumbo, qui peuvent être intercalés dans n'importe quel ordre.
 
     3. `txt: /[^{}]+/`
 
-            Cette règle définit un bloc de texte, qui est une séquence de caractères ne contenant pas les caractères '{' et '}'.
+        Cette règle définit un bloc de texte, qui est une séquence de caractères ne contenant pas les caractères '{' et '}'.
 
     4. `expressions_list: expression ";" expressions_list | expression`
 
-            Cette règle permet de définir une liste d'expressions. Une liste d'expressions peut contenir une ou plusieurs expressions séparées par des points-virgules.
+        Cette règle permet de définir une liste d'expressions. Une liste d'expressions peut contenir une ou plusieurs expressions séparées par des points-virgules.
 
     5. `expression: "print" string_expression | for_loop | assign_statement | integer_expression | boolean_expression | if_statement`
 
-            Cette règle définit les différentes expressions pouvant apparaître dans un bloc Dumbo. Les expressions peuvent être des instructions d'affichage (print), des boucles (for_loop), des affectations (assign_statement), des expressions entières (integer_expression), des expressions booléennes (boolean_expression), ou des instructions conditionnelles (if_statement).
+        Cette règle définit les différentes expressions pouvant apparaître dans un bloc Dumbo. Les expressions peuvent être des instructions d'affichage (print), des boucles (for_loop), des affectations (assign_statement), des expressions entières (integer_expression), des expressions booléennes (boolean_expression), ou des instructions conditionnelles (if_statement).
 
     6. `assign_statement: variable ":=" string | variable ":=" string_expression "." string_expression | variable ":=" integer_expression | variable ":=" string_list`
 
-            Cette règle définit les instructions d'affectation, qui permettent d'assigner une valeur à une variable. Une instruction d'affectation peut prendre différentes formes : assignation d'une chaîne de caractères (string), assignation d'une expression de chaîne de caractères (string_expression), assignation d'une expression entière (integer_expression), ou assignation d'une liste de chaînes de caractères (string_list).
+        Cette règle définit les instructions d'affectation, qui permettent d'assigner une valeur à une variable. Une instruction d'affectation peut prendre différentes formes : assignation d'une chaîne de caractères (string), assignation d'une expression de chaîne de caractères (string_expression), assignation d'une expression entière (integer_expression), ou assignation d'une liste de chaînes de caractères (string_list).
 
     7. `for_loop: "for" variable "in" string_list "do" expressions_list "endfor" | "for" variable "in" variable "do" expressions_list "endfor"`
 
-            Cette règle définit les boucles for dans notre moteur de template. Une boucle for itère sur les éléments d'une liste (string_list) ou d'une variable et exécute un bloc d'expressions (expressions_list) pour chaque élément.
+        Cette règle définit les boucles for dans notre moteur de template. Une boucle for itère sur les éléments d'une liste (string_list) ou d'une variable et exécute un bloc d'expressions (expressions_list) pour chaque élément.
 
     8. `if_statement: "if" boolean_expression "do" expressions_list "endif"`
 
-            Cette règle définit les instructions conditionnelles if dans notre moteur de template
+        Cette règle définit les instructions conditionnelles if dans notre moteur de template
 
 2. ### Analyse Sémantique
 

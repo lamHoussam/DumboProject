@@ -1,4 +1,4 @@
-from lark import Lark, Token, Transformer, UnexpectedToken
+from lark import Lark, Token, UnexpectedToken
 from argparse import ArgumentParser
 
 operators = {
@@ -13,7 +13,7 @@ class DumboTemplateEngineError(Exception):
     pass
 
 
-class DumboTemplateEngine(Transformer):
+class DumboTemplateEngine():
     def __init__(self, grammar):
         self.global_variables = {}
         self.local_variables = {}
@@ -67,7 +67,8 @@ class DumboTemplateEngine(Transformer):
                 return self.evaluate_integer_expression(child)
         elif children_num == 2:
             coeff = -1 if str(node.children[0]) == '-' else 1
-            return int(coeff) * int(self.evaluate_integer_expression(node.children[1]))
+            return int(coeff) * \
+                int(self.evaluate_integer_expression(node.children[1]))
         else:
             left_operand = self.evaluate_integer_expression(node.children[0])
             operator = operators.get(str(node.children[1].children[0].data))
@@ -205,10 +206,19 @@ def main():
         type=str,
         help='A file containing text and Dumbo code to inject data into')
 
+    arg_parser.add_argument(
+        '--output_file',
+        metavar='output_file',
+        type=str,
+        help='Output file path',
+        default=None
+    )
+
     args = arg_parser.parse_args()
 
     data_file = args.data_file
     template_file = args.template_file
+    output_file = args.output_file
 
     print(f'Data file: {args.data_file}')
     print(f'Template file: {template_file}')
@@ -228,8 +238,9 @@ def main():
         try:
             dumbo_engine.load_variables_data(data=data)
             output = dumbo_engine.render(template_file_content)
-            with open("output.txt", 'w') as f:
-                f.write(str(output))
+            if output_file:
+                with open(output_file, 'w') as f:
+                    f.write(str(output))
             print(output)
         except DumboTemplateEngineError as e:
             print(f"Dumbo Template engine error: {e}")
