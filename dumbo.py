@@ -33,7 +33,7 @@ class DumboTemplateEngine():
             error_message = f"Syntax error at line {line}, column {column}: {e}"
             raise DumboTemplateEngineError(error_message)
 
-        # print("Variables : " + str(self.global_variables))
+        # print(f"Variables : {self.global_variables}")
 
     def render(self, template):
         try:
@@ -127,19 +127,24 @@ class DumboTemplateEngine():
                     lambda v: isinstance(
                         v, Token)))
             value_node = node.children[1]
+            is_lst = value_node.data == 'string_list'
             var_value = ','.join(
                 value_node.scan_values(
                     lambda v: isinstance(
                         v, Token)))
-            lst = var_value.split(",")
 
-            var_value = var_value.strip("'") if len(lst) == 1 else tuple(lst)
+            lst = var_value.split(",")
+            if is_lst:
+                var_value = tuple([str(el).strip('\'') for el in lst])
+            else:
+                var_value = var_value.strip("'")
+
             if value_node.data == 'integer_expression':
                 var_value = self.evaluate_integer_expression(value_node)
 
             variables_dict = self.global_variables if loading_data else self.local_variables
             variables_dict[var_name] = var_value
-            # print("Variables : " + str(variables_dict))
+            # print(f"Variables : {variables_dict}")
 
         elif node.data == 'for_loop':
             collection_node = node.children[1]
@@ -158,7 +163,7 @@ class DumboTemplateEngine():
             if collection is None:
                 return
             size = len(collection)
-            # print("Expression for : " + str(node.children[2]))
+            # print(f"Expression for : {node.children[2]}")
             if size != 0:
                 i = 0
                 self.local_variables[iter_var_name] = collection[i]
@@ -220,8 +225,8 @@ def main():
     template_file = args.template_file
     output_file = args.output_file
 
-    print(f'Data file: {args.data_file}')
-    print(f'Template file: {template_file}')
+    # print(f'Data file: {args.data_file}')
+    # print(f'Template file: {template_file}')
 
     try:
         with open('grammar.lark', 'r') as f:
